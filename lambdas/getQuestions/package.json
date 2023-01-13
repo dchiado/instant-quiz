@@ -1,0 +1,8 @@
+{
+  "name": "getQuestionsLambda",
+  "dependencies": {
+    "jspdf": "^2.5.1",
+    "pg": "^8.8.0",
+    "uuid": "^9.0.0"
+  }
+}

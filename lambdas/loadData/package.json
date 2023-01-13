@@ -1,0 +1,7 @@
+{
+  "name": "loadDataLambda",
+  "dependencies": {
+    "pg": "^8.8.0",
+    "word-extractor": "^1.0.4"
+  }
+}
