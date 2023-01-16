@@ -89,7 +89,7 @@ export const App = () => {
 			}
 
       {categories?.length > 0 &&
-        <div className='categories'>
+        <div className='container'>
           <Categories
             categories={categories}
             checkedCategories={checkedCategories}
@@ -126,7 +126,7 @@ export const App = () => {
 
       {loading && <LoadingSpinner />}
 
-      <div>
+      <div className='download-link'>
         {quiz?.url && 
           <a href={quiz.url}>Download</a>
         }

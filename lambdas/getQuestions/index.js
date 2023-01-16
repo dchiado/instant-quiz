@@ -149,6 +149,7 @@ exports.handler = async (event) => {
 
         // loop through each question
         cat.questions.forEach((q, qIdx) => {
+            // TODO: this needs to wrap instead of going off the page
             pdf.text(`${qIdx + 1}. ${q.question}`, 20, y);
             y += 6; // space between question and first answer
 

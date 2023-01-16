@@ -115,7 +115,7 @@ exports.handler = async (event) => {
           });
           break;
         case 'category':
-          questionObj.categories = content.split(',');
+          questionObj.categories = content.split(',').map((c) => c.trim());
           break;
         default:
           break;

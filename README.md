@@ -43,9 +43,14 @@ The database is a [postgres database](https://www.postgresql.org/) built on [RDS
     ```
 ## Deployment
 
-TODO: update
+### React app frontend
+The react app is deployed to a public s3 bucket called `quiz-react-app`. Follow these steps to deploy it.
 
-## Developing lambdas
+1. From the root dir of the repo, run `npm run build`
+1. In the S3 bucket, click upload and upload all files found in the `build/` directory of the repo
+1. The app should be available at the URL found in the bucket under Properties > Static Website Hosting > Bucket website endpoint
+
+### Lambdas
 
 Due to npm package dependencies, lambdas should be edited in this repo and deployes with the aws cli. Follow these steps to develop them.
 

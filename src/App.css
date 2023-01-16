@@ -29,9 +29,13 @@ a:link {
   color: deepskyblue;
 }
 
-.categories {
+.container {
   width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.download-link {
+  margin-bottom: 15px;
 }
