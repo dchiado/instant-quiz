@@ -1,13 +1,13 @@
-import logo from './brain.gif';
 import { useEffect, useState } from 'react';
+import logo from './brain.gif';
 import {
+  Alert,
   Button,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  TextField
+  TextField,
 } from '@mui/material';
-import LoadingSpinner from "./components/loadingSpinner/LoadingSpinner";
+import { Stack } from '@mui/system';
+import LoadingSpinner from './components/loadingSpinner/LoadingSpinner';
+import Categories from './components/categories/Categories';
 import './App.css';
 
 const apiEndpoint = process.env.REACT_APP_API_URL;
@@ -21,25 +21,30 @@ const getParams = {
 
 export const App = () => {
   const [loading, setLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
+  const [error, setError] = useState();
+
+  const [categories, setCategories] = useState();
   const [checkedCategories, setCheckedCategories] = useState([]);
   const [questionsPerCategory, setQuestionsPerCategory] = useState(10);
   const [quiz, setQuiz] = useState({});
 
   // calls the /categories endpoint on page render
   useEffect(() => {
-		if (categories.length === 0) {
+		if (!categories) {
       setLoading(true);
 			fetch(`${apiEndpoint}/categories`, getParams)
 			.then((res) =>
 				res.json().then((data) => {
 					setCategories(data);
-          setLoading(false);
 				})
 			)
 			.catch((error) => {
 				console.error(error);
-			});
+        setError('There was a problem loading categories: ' + error);
+			})
+      .finally(() => {
+        setLoading(false);
+      });
 		}
 	}, [categories]);
 
@@ -53,33 +58,18 @@ export const App = () => {
         res.json().then((data) => {
           console.log(data);
           setQuiz(data);
-          setLoading(false);
         })
       )
       .catch((error) => {
         console.error(error);
+        setError('There was a problem retrieving your quiz: ' + error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
     } else {
       alert('You must select at least one category');
     }
-  }
-
-  // updates the checkedCategories in state when checkboxes are (de)selected
-  const handleCheckboxChange = (event) => {
-    const cat = event.target.id;
-    const checked = event.target.checked;
-    // clone existing selected categories array
-    let newCats = checkedCategories;
-    if (checked) {
-      // add the target category to array
-      newCats = [...newCats, cat];
-    } else {
-      // remove the target category from array
-      const idx = newCats.indexOf(cat);
-      newCats.splice(idx, 1);
-    }
-    // update state with new (cloned) array
-    setCheckedCategories(newCats);
   }
 
   // updates state with the number the user enters
@@ -91,18 +81,22 @@ export const App = () => {
   return (
     <div className="App">
       <img src={logo} className="App-logo" alt="logo" />
-      {categories.length > 0 &&
-        <div className="form">
-          <FormGroup>
-            Select your categories:
-            {categories.map((c) => 
-              <FormControlLabel
-                key={c.id}
-                control={<Checkbox id={c.name} onChange={handleCheckboxChange} />}
-                label={c.name.charAt(0).toUpperCase() + c.name.slice(1)} // just capitalizes the first letter
-              />  
-            )}
-          </FormGroup>
+
+      {error &&
+				<Stack spacing={2} sx={{ position: 'fixed', top: 100 }}>
+					<Alert onClose={() => setError()} severity="error">{error}</Alert>
+				</Stack>
+			}
+
+      {categories?.length > 0 &&
+        <div className='categories'>
+          <Categories
+            categories={categories}
+            checkedCategories={checkedCategories}
+            setCheckedCategories={setCheckedCategories}
+          >
+          </Categories>
+
           <TextField
 						id="question-count"
 						label="Questions per category"
@@ -117,7 +111,6 @@ export const App = () => {
 						sx={{
 							input: { color: 'white' },
 							label: { color: 'lightgray' },
-              width: '100%'
 						}}
 					/>
           <Button

@@ -147,7 +147,7 @@ exports.handler = async (event) => {
 
         const insertCategory = `INSERT INTO category(name) VALUES($1) RETURNING id;`;
 
-        const selectCategory = `SELECT id FROM category WHERE name = '$1'`;
+        const selectCategory = `SELECT id FROM category WHERE name = $1`;
 
         const insertQuestionCategory = `
           INSERT INTO question_category(question_id, category_id)
@@ -157,7 +157,7 @@ exports.handler = async (event) => {
         const insertAnswer = `
           INSERT INTO answer(question_id, content, correct)
           VALUES($1, $2, $3);
-        `
+        `;
 
         // loop through quiz array (each record is a question)
         for (const q of quiz) {
