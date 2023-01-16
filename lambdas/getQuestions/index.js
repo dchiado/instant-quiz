@@ -14,11 +14,8 @@ exports.handler = async (event) => {
     const queryParams = event["queryStringParameters"];
 
     // get list of categories selected
-    // categories=lit,geo
     const categories = queryParams.categories.split(',');
-    // categories=[lit, geo]
     const stringifiedCategories = categories.map((c) => `'${c}'`);
-    // categories=['lit', 'geo']
 
     // get number of questions per category
     const questionsPer = queryParams.questionsPer;
@@ -141,17 +138,33 @@ exports.handler = async (event) => {
 
     // loop through each category
     quiz.forEach((cat) => {
+        // go to next page if getting close to bottom
+        if (y > 270) {
+          y = 20;
+          pdf.addPage();
+        }
+
         pdf.setFontSize(14);
-        y += 4;
+        y += 4; // space between header and first category
         pdf.text(cat.category.charAt(0).toUpperCase() + cat.category.slice(1), 10, y);
         y += 10; // space between category name and first question
         pdf.setFontSize(11);
 
         // loop through each question
         cat.questions.forEach((q, qIdx) => {
-            // TODO: this needs to wrap instead of going off the page
-            pdf.text(`${qIdx + 1}. ${q.question}`, 20, y);
-            y += 6; // space between question and first answer
+            // go to next page if getting close to bottom
+            if (y > 270) {
+              y = 20;
+              pdf.addPage();
+            }
+  
+            // turn question into array and loop over to achieve wrapping
+            const questionContent = `${qIdx + 1}. ${q.question}`;
+            const splitContent = pdf.splitTextToSize(questionContent, 170);
+            for (let i = 0; i < splitContent.length; i++) {                
+              pdf.text(splitContent[i], 20, y);
+              y += 6; // space between question and first answer
+            }
 
             // loop through each answer
             q.answers.forEach((a, aIdx) => {
@@ -197,7 +210,6 @@ exports.handler = async (event) => {
     // need the Body param when uploading
     const putParams = {
         ...params,
-        // Body: JSON.stringify(quiz)
         Body: fileStream
     };
 
@@ -224,15 +236,12 @@ exports.handler = async (event) => {
         return null;
     });
 
-    // just to help testing
-    console.log(url);
-
     // send back response
     const response = {
         statusCode: 200,
         body: JSON.stringify({
             url: url,
-            quiz: quiz // ultimately dont need to return this
+            quiz: quiz
         }),
     };
     return response;

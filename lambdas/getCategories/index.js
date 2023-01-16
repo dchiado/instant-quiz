@@ -15,7 +15,7 @@ exports.handler = async () => {
         conn = await getDbClient();
         await conn.connect();
         console.log('Connected to database');
-        categories = await conn.query('SELECT id, name FROM category;');
+        categories = await conn.query('SELECT id, name FROM category ORDER BY name;');
     } catch (error) {
         console.log(`There was a problem querying the database: ${error} `);
         throw error;

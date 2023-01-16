@@ -51,6 +51,7 @@ export const App = () => {
   // calls the /questions endpoint on button click
   const handleButtonClick = (event) => {
     event.preventDefault();
+    setQuiz({});
     if (checkedCategories.length > 0) {
       setLoading(true);
       fetch(`${apiEndpoint}/questions?categories=${checkedCategories}&questionsPer=${questionsPerCategory}`, getParams)
