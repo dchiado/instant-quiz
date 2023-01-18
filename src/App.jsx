@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import logo from './brain.gif';
 import {
   Alert,
+  Box,
   Button,
   TextField,
+  Typography,
 } from '@mui/material';
 import { Stack } from '@mui/system';
 import LoadingSpinner from './components/loadingSpinner/LoadingSpinner';
@@ -130,6 +132,61 @@ export const App = () => {
       <div className='download-link'>
         {quiz?.url && 
           <a href={quiz.url}>Download</a>
+        }
+      </div>
+
+      <div className='display-quiz'>
+        {quiz?.quiz &&
+          <div>
+            {quiz.quiz.map((q) => {
+              return (
+                <div>
+                  <Typography
+                    variant="h6"
+                    noWrap
+                    sx={{
+                      mr: 5,
+                      display: 'flex',
+                      fontFamily: 'monospace',
+                      fontWeight: 700,
+                      fontSize: 28,
+                      letterSpacing: '.2rem',
+                      color: 'inherit',
+                      textDecoration: 'none',
+                    }}
+                  >
+                    {q.category}
+                  </Typography>
+                  {q.questions.map((question, idx) => {
+                    return (
+                      <Box 
+                        sx={{
+                          width: '100%',
+                          mb: 3,
+                          mt: 3,
+                          backgroundColor: '#5E6471',
+                          padding: 3,
+                          borderRadius: 3,
+                          fontSize: 16
+                        }}
+                      >
+                        <div>
+                          {`${idx + 1}. ${question.question}`}
+                          {question.answers?.map((a) => {
+                            return (
+                              <div className={question.multipleChoice && a.correct ? 'bold' : ''}>
+                                {a.content}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </Box>
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
         }
       </div>
     </div>
