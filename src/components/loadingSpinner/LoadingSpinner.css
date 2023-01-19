@@ -10,10 +10,12 @@
   height: 100%;
   background: rgba(255,255,255,0.3);
   pointer-events: none;
+  z-index: 99;
 }
 
 .spinner-wrapper {
   position: absolute;
   top: 30%;
   left: 50%;
+  z-index: 100;
 }

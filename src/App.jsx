@@ -55,9 +55,22 @@ export const App = () => {
   const handleButtonClick = (event) => {
     event.preventDefault();
     setQuiz({});
+
+    const postParams = {
+      method: 'POST',
+      body: JSON.stringify({
+        categories: checkedCategories,
+        questionsPer: questionsPerCategory,
+      }),
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      },
+      crossDomain: true    
+    }
+
     if (checkedCategories.length > 0) {
       setLoading(true);
-      fetch(`${apiEndpoint}/questions?categories=${checkedCategories}&questionsPer=${questionsPerCategory}`, getParams)
+      fetch(`${apiEndpoint}/quiz`, postParams)
       .then((res) =>
         res.json().then((data) => {
           setQuiz(data);
@@ -100,14 +113,6 @@ export const App = () => {
       crossDomain: true    
     }
 
-    // [x] quiz gets saved in s3 and returned to frontend with s3 path
-    // [x] user clicks X on a question
-    // [x] question id and s3 path are sent to backend (PATCH /quiz -> replaceQuestion lambda)
-    // [x] lambda gets the quiz
-    // [x] lambda removes id to remove
-    // [x] lambda gets new question/answers
-    // [x] lambda reuploads to s3 and returns quiz and path to frontend
-
     setLoading(true);
     fetch(`${apiEndpoint}/quiz`, patchParams)
     .then((res) =>
@@ -132,6 +137,27 @@ export const App = () => {
     setDisplayQuiz(false);
     setCheckedCategories([]);
     setDisplayCategories(true);
+  }
+
+  const handleDownloadQuiz = () => {
+    setLoading(true);
+    fetch(`${apiEndpoint}/quiz?key=${quiz.s3Path}`, getParams)
+    .then((res) =>
+      res.json().then((data) => {
+        const link = document.createElement('a');
+        link.href = data.url;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      })
+    )
+    .catch((error) => {
+      console.error(error);
+      setError('There was a problem downloading your quiz: ' + error);
+    })
+    .finally(() => {
+      setLoading(false);
+    });
   }
   
   return (
@@ -171,7 +197,7 @@ export const App = () => {
         <div className='buttons-row'>
           <Button
             text="Download Quiz"
-            href={quiz.url}
+            onClick={handleDownloadQuiz}
           />
           <Button
             text="New Quiz"
