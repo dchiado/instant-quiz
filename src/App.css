@@ -36,17 +36,9 @@ a:link {
   align-items: center;
 }
 
-.download-link {
-  margin-bottom: 15px;
-}
-
-.display-quiz {
-  width: 50%;
+.buttons-row {
   display: flex;
-  flex-direction: column;
+  gap: 30px;
+  justify-content: space-around;
   align-items: center;
-}
-
-.bold {
-  font-weight: 700;
 }

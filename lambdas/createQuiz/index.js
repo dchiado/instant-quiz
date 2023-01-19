@@ -14,7 +14,7 @@ exports.handler = async (event) => {
     const queryParams = event["queryStringParameters"];
 
     // get the already-generated quiz from DB or s3
-
+    let quiz = [];
     // --------------------------------------------
     // creating a pdf file before uploading to s3
     // using this: https://github.com/parallax/jsPDF

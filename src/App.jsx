@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react';
 import logo from './brain.gif';
-import {
-  Alert,
-  Box,
-  Button,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Alert } from '@mui/material';
 import { Stack } from '@mui/system';
 import LoadingSpinner from './components/loadingSpinner/LoadingSpinner';
 import Categories from './components/categories/Categories';
+import Quiz from './components/quiz/Quiz';
+import NumericInput from './components/numericInput/NumericInput';
+import Button from './components/button/Button';
 import './App.css';
 
 const apiEndpoint = process.env.REACT_APP_API_URL;
@@ -27,8 +24,11 @@ export const App = () => {
 
   const [categories, setCategories] = useState();
   const [checkedCategories, setCheckedCategories] = useState([]);
+  const [displayCategories, setDisplayCategories] = useState(false);
   const [questionsPerCategory, setQuestionsPerCategory] = useState(10);
+
   const [quiz, setQuiz] = useState({});
+  const [displayQuiz, setDisplayQuiz] = useState(false);
 
   // calls the /categories endpoint on page render
   useEffect(() => {
@@ -38,6 +38,7 @@ export const App = () => {
 			.then((res) =>
 				res.json().then((data) => {
 					setCategories(data);
+          setDisplayCategories(true);
 				})
 			)
 			.catch((error) => {
@@ -59,8 +60,9 @@ export const App = () => {
       fetch(`${apiEndpoint}/questions?categories=${checkedCategories}&questionsPer=${questionsPerCategory}`, getParams)
       .then((res) =>
         res.json().then((data) => {
-          console.log(data);
           setQuiz(data);
+          setDisplayCategories(false);
+          setDisplayQuiz(true);
         })
       )
       .catch((error) => {
@@ -81,6 +83,57 @@ export const App = () => {
     setQuestionsPerCategory(num);
   }
 
+  const handleRemoveQuestion = (event) => {
+    const id = event.currentTarget.getAttribute("dataquestionid");
+    const cat = event.currentTarget.getAttribute("datacategory");
+
+    const patchParams = {
+      method: 'PATCH',
+      body: JSON.stringify({
+        s3Path: quiz.s3Path,
+        category: cat,
+        questionId: id
+      }),
+      headers: {
+        'Content-type': 'application/json; charset=UTF-8',
+      },
+      crossDomain: true    
+    }
+
+    // [x] quiz gets saved in s3 and returned to frontend with s3 path
+    // [x] user clicks X on a question
+    // [x] question id and s3 path are sent to backend (PATCH /quiz -> replaceQuestion lambda)
+    // [x] lambda gets the quiz
+    // [x] lambda removes id to remove
+    // [x] lambda gets new question/answers
+    // [x] lambda reuploads to s3 and returns quiz and path to frontend
+
+    setLoading(true);
+    fetch(`${apiEndpoint}/quiz`, patchParams)
+    .then((res) =>
+      res.json().then((data) => {
+        setQuiz({
+          ...quiz,
+          quiz: data
+        });
+      })
+    )
+    .catch((error) => {
+      console.error(error);
+      setError('There was a problem updating your quiz: ' + error);
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+  }
+
+  // updates state with the number the user enters
+  const handleNewQuiz = () => {
+    setDisplayQuiz(false);
+    setCheckedCategories([]);
+    setDisplayCategories(true);
+  }
+  
   return (
     <div className="App">
       <img src={logo} className="App-logo" alt="logo" />
@@ -91,7 +144,7 @@ export const App = () => {
 				</Stack>
 			}
 
-      {categories?.length > 0 &&
+      {displayCategories &&
         <div className='container'>
           <Categories
             categories={categories}
@@ -99,96 +152,39 @@ export const App = () => {
             setCheckedCategories={setCheckedCategories}
           >
           </Categories>
-
-          <TextField
-						id="question-count"
-						label="Questions per category"
-						value={questionsPerCategory}
-            variant="filled"
-						onChange={handleQuestionCountChange}
-						onKeyPress={(event) => {
-							if (!/[0-9]/.test(event.key)) {
-								event.preventDefault();
-							}
-						}}			
-						sx={{
-							input: { color: 'white' },
-							label: { color: 'lightgray' },
-						}}
-					/>
+          <NumericInput
+            id="question-count"
+            label="Questions per category"
+            value={questionsPerCategory}
+            onChange={handleQuestionCountChange}
+          />
           <Button
-            key='get-questions'
-            variant="contained"
+            text="Make me a quiz"
             onClick={handleButtonClick}
-            sx={{ backgroundColor: '#5A7D7C', color: 'white', display: 'block', fontSize: 14, padding: 1, mt: 3, mb: 3 }}
-          >
-            Make me a quiz
-          </Button>
+          />
         </div>
       }
 
-      {loading && <LoadingSpinner />}
+      <LoadingSpinner visible={loading} />
 
-      <div className='download-link'>
-        {quiz?.url && 
-          <a href={quiz.url}>Download</a>
-        }
-      </div>
+      {displayQuiz && 
+        <div className='buttons-row'>
+          <Button
+            text="Download Quiz"
+            href={quiz.url}
+          />
+          <Button
+            text="New Quiz"
+            onClick={handleNewQuiz}
+          />
+        </div>
+      }
 
-      <div className='display-quiz'>
-        {quiz?.quiz &&
-          <div>
-            {quiz.quiz.map((q) => {
-              return (
-                <div>
-                  <Typography
-                    variant="h6"
-                    noWrap
-                    sx={{
-                      mr: 5,
-                      display: 'flex',
-                      fontFamily: 'monospace',
-                      fontWeight: 700,
-                      fontSize: 28,
-                      letterSpacing: '.2rem',
-                      color: 'inherit',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    {q.category}
-                  </Typography>
-                  {q.questions.map((question, idx) => {
-                    return (
-                      <Box 
-                        sx={{
-                          width: '100%',
-                          mb: 3,
-                          mt: 3,
-                          backgroundColor: '#5E6471',
-                          padding: 3,
-                          borderRadius: 3,
-                          fontSize: 16
-                        }}
-                      >
-                        <div>
-                          {`${idx + 1}. ${question.question}`}
-                          {question.answers?.map((a) => {
-                            return (
-                              <div className={question.multipleChoice && a.correct ? 'bold' : ''}>
-                                {a.content}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </Box>
-                    )
-                  })}
-                </div>
-              )
-            })}
-          </div>
-        }
-      </div>
+      <Quiz
+        quiz={quiz?.quiz}
+        visible={displayQuiz}
+        onRemoveQuestion={handleRemoveQuestion}  
+      />
     </div>
   );
 }
