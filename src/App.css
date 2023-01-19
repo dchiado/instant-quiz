@@ -36,6 +36,9 @@ a:link {
   align-items: center;
 }
 
-.download-link {
-  margin-bottom: 15px;
+.buttons-row {
+  display: flex;
+  gap: 30px;
+  justify-content: space-around;
+  align-items: center;
 }

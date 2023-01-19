@@ -1,0 +1,7 @@
+{
+  "name": "createQuizLambda",
+  "dependencies": {
+    "jspdf": "^2.5.1",
+    "uuid": "^9.0.0"
+  }
+}
