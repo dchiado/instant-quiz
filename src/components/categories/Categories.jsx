@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, ToggleButton, ToggleButtonGroup } from "@mui/material";
-import './Categories.css';
+import './Categories.scss';
+import colors from '../../styles/_colors.scss';
 
 const Categories = ({ categories, checkedCategories, setCheckedCategories }) => {
   const handleToggleCategory = (_event, newCategories) => {
@@ -8,7 +9,7 @@ const Categories = ({ categories, checkedCategories, setCheckedCategories }) => 
   };
 
   return (
-    <Box sx={{ width: '100%', mb: 3, mt: 3, backgroundColor: '#5E6471', padding: 3, borderRadius: 3 }}>
+    <Box sx={{ width: '100%', mb: 3, mt: 3, backgroundColor: colors.secondaryGrayColor, padding: 3, borderRadius: 3 }}>
       Select your categories:
       <ToggleButtonGroup
         value={checkedCategories}
@@ -29,8 +30,8 @@ const Categories = ({ categories, checkedCategories, setCheckedCategories }) => 
           key={c.name}
           aria-label={c.name}
           sx={{
-            color: 'white',
-            backgroundColor: '#282c34',
+            color: colors.primaryTextColor,
+            backgroundColor: colors.primaryColor,
             borderRadius: 0,
           }}
         >

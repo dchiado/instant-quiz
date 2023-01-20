@@ -1,4 +1,5 @@
 import { TextField } from "@mui/material";
+import colors from '../../styles/_colors.scss';
 
 export const NumericInput = ({ id, label, onChange, value }) => {
   return (
@@ -14,8 +15,8 @@ export const NumericInput = ({ id, label, onChange, value }) => {
         }
       }}			
       sx={{
-        input: { color: 'white' },
-        label: { color: 'lightgray' },
+        input: { color: colors.primaryTextColor },
+        label: { color: colors.labelTextColor },
       }}
     />
   )

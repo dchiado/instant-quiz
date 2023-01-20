@@ -2,6 +2,7 @@ import { Card, CardContent, IconButton, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import CloseIcon from '@mui/icons-material/Close';
 import './Quiz.css';
+import colors from '../../styles/_colors.scss';
 
 const letters = ['A', 'B', 'C', 'D', 'E'];
 
@@ -29,7 +30,7 @@ export const Quiz = ({ quiz, onRemoveQuestion, visible }) => {
 
                 {q.questions.map((question, qIdx) => {
                   return (
-                    <Card key={qIdx} sx={{ display: 'flex', backgroundColor: '#5E6471', mb: 2, borderRadius: 3 }}>
+                    <Card key={qIdx} sx={{ display: 'flex', backgroundColor: colors.secondaryGrayColor, mb: 2, borderRadius: 3 }}>
                       <Box sx={{ width: '100%', padding: '10px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
                         <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
                           <Typography variant="subtitle1" color="white" component="div">
@@ -57,7 +58,7 @@ export const Quiz = ({ quiz, onRemoveQuestion, visible }) => {
                         </CardContent>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <IconButton dataquestionid={question.id} datacategory={q.category} onClick={onRemoveQuestion} >
-                            <CloseIcon sx={{ color: 'white' }} />
+                            <CloseIcon sx={{ color: colors.primaryTextColor }} />
                           </IconButton>
                         </Box>
                       </Box>

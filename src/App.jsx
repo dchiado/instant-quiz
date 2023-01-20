@@ -7,7 +7,7 @@ import Categories from './components/categories/Categories';
 import Quiz from './components/quiz/Quiz';
 import NumericInput from './components/numericInput/NumericInput';
 import Button from './components/button/Button';
-import './App.css';
+import './App.scss';
 
 const apiEndpoint = process.env.REACT_APP_API_URL;
 

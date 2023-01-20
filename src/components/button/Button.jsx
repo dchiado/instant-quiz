@@ -1,4 +1,5 @@
 import { Button as MuiButton } from '@mui/material';
+import colors from '../../styles/_colors.scss';
 
 export const Button = ({ text, onClick, href }) => {
   return (
@@ -7,7 +8,7 @@ export const Button = ({ text, onClick, href }) => {
       onClick={onClick}
       href={href || ''}
       sx={{
-        backgroundColor: '#5A7D7C',
+        backgroundColor: colors.buttonGreenColor,
         color: 'white !important',
         display: 'block',
         fontSize: 14,
