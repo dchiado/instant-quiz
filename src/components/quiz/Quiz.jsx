@@ -32,7 +32,7 @@ export const Quiz = ({ quiz, onRemoveQuestion, visible }) => {
                   return (
                     <Card key={qIdx} sx={{ display: 'flex', backgroundColor: colors.secondaryGrayColor, mb: 2, borderRadius: 3 }}>
                       <Box sx={{ width: '100%', padding: '10px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
+                        <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', userSelect: 'none' }}>
                           <Typography variant="subtitle1" color="white" component="div">
                             {`${qIdx + 1}. ${question.question}`}
                           </Typography>
