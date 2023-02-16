@@ -1,79 +1,100 @@
 Resources:
-  # s3 bucket to store downloadable quizzes
-  DownloadBucket:
-    Type: AWS::S3::Bucket
+  QuizDatabase:
+    Type: AWS::RDS::DBInstance
     Properties: 
-      BucketEncryption: 
-        ServerSideEncryptionConfiguration: 
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
-      BucketName: 'instant-trivia-download'
-      PublicAccessBlockConfiguration: 
-          BlockPublicAcls: True
-          BlockPublicPolicy: True
-          IgnorePublicAcls: True
-          RestrictPublicBuckets: True
-      VersioningConfiguration: 
-        Status: Enabled
-    DeletionPolicy: Delete
+      AllocatedStorage: 20
+      AllowMajorVersionUpgrade: False
+      AutoMinorVersionUpgrade: True
+      BackupRetentionPeriod: 0
+      DBInstanceClass: db.t3.micro
+      DBInstanceIdentifier: quiz-database
+      DBName: trivia
+      EnablePerformanceInsights: False
+      Engine: postgres
+      ManageMasterUserPassword: True
+      MasterUsername: postgres
+      MaxAllocatedStorage: 20
+      MultiAZ: False
+      Port: 5432
+      PubliclyAccessible: True
+      StorageType: gp2
 
-  # download bucket policy
-  DownloadBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket: !Ref DownloadBucket
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Action:
-              - 's3:AbortMultipartUpload'
-              - 's3:GetObject'
-              - 's3:GetObjectVersion'
-              - 's3:PutObject'
-            Effect: Allow
-            Resource: !Join
-              - ''
-              - - 'arn:aws:s3:::'
-                - !Ref DownloadBucket
-                - /*
-            # TODO needs to be dynamic
-            Principal: 'arn:aws:iam::216835676480:role/service-role/getQuestions-role-1g8vur7n'
+  # # s3 bucket to store downloadable quizzes
+  # DownloadBucket:
+  #   Type: AWS::S3::Bucket
+  #   Properties: 
+  #     BucketEncryption: 
+  #       ServerSideEncryptionConfiguration: 
+  #       - ServerSideEncryptionByDefault:
+  #           SSEAlgorithm: AES256
+  #     BucketName: 'instant-quiz-download'
+  #     PublicAccessBlockConfiguration: 
+  #         BlockPublicAcls: True
+  #         BlockPublicPolicy: True
+  #         IgnorePublicAcls: True
+  #         RestrictPublicBuckets: True
+  #     VersioningConfiguration: 
+  #       Status: Enabled
+  #   DeletionPolicy: Delete
 
-  # TODO: lifecycle rule for download bucket
+  # # download bucket policy
+  # DownloadBucketPolicy:
+  #   Type: AWS::S3::BucketPolicy
+  #   Properties: 
+  #     Bucket: !Ref DownloadBucket
+  #     PolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Action:
+  #             - 's3:AbortMultipartUpload'
+  #             - 's3:GetObject'
+  #             - 's3:GetObjectVersion'
+  #             - 's3:PutObject'
+  #           Effect: Allow
+  #           Resource: !Join
+  #             - ''
+  #             - - 'arn:aws:s3:::'
+  #               - !Ref DownloadBucket
+  #               - /*
+  #           # TODO needs to be dynamic
+  #           Principal: 'arn:aws:iam::216835676480:role/service-role/getQuestions-role-1g8vur7n'
 
-  # s3 bucket for uploading questions
-  UploadBucket:
-    Type: AWS::S3::Bucket
-    Properties: 
-      BucketEncryption: 
-        ServerSideEncryptionConfiguration: 
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
-      BucketName: 'instant-trivia-upload'
-      PublicAccessBlockConfiguration: 
-          BlockPublicAcls: True
-          BlockPublicPolicy: True
-          IgnorePublicAcls: True
-          RestrictPublicBuckets: True
-      VersioningConfiguration: 
-        Status: Enabled
-    DeletionPolicy: Delete
+  # # TODO: lifecycle rule for download bucket
 
-  # upload bucket policy
-  UploadBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket: !Ref UploadBucket
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Action:
-              - 's3:GetObject'
-            Effect: Allow
-            Resource: !Join
-              - ''
-              - - 'arn:aws:s3:::'
-                - !Ref UploadBucket
-                - /*
-            # TODO needs to be dynamic
-            Principal: 'arn:aws:iam::216835676480:role/service-role/loadData-role-3rqtsv62'
+  # # s3 bucket for uploading questions
+  # UploadBucket:
+  #   Type: AWS::S3::Bucket
+  #   Properties: 
+  #     BucketEncryption: 
+  #       ServerSideEncryptionConfiguration: 
+  #       - ServerSideEncryptionByDefault:
+  #           SSEAlgorithm: AES256
+  #     BucketName: 'instant-quiz-upload'
+  #     PublicAccessBlockConfiguration: 
+  #         BlockPublicAcls: True
+  #         BlockPublicPolicy: True
+  #         IgnorePublicAcls: True
+  #         RestrictPublicBuckets: True
+  #     VersioningConfiguration: 
+  #       Status: Enabled
+  #   DeletionPolicy: Delete
+
+  # # upload bucket policy
+  # UploadBucketPolicy:
+  #   Type: AWS::S3::BucketPolicy
+  #   Properties: 
+  #     Bucket: !Ref UploadBucket
+  #     PolicyDocument:
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Action:
+  #             - 's3:GetObject'
+  #           Effect: Allow
+  #           Resource: !Join
+  #             - ''
+  #             - - 'arn:aws:s3:::'
+  #               - !Ref UploadBucket
+  #               - /*
+  #           # TODO needs to be dynamic
+  #           Principal: 'arn:aws:iam::216835676480:role/service-role/loadData-role-3rqtsv62'
+

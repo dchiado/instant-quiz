@@ -1,6 +1,6 @@
 CREATE TABLE question (
   id SERIAL PRIMARY KEY,
-  content VARCHAR ( 255 ) NOT NULL,
+  content VARCHAR ( 255 ) NOT NULL UNIQUE,
   is_multiple_choice BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT current_timestamp,
   updated_at TIMESTAMP DEFAULT current_timestamp
