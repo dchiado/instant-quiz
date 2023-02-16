@@ -1,4 +1,5 @@
 Resources:
+  # RDS Instance
   QuizDatabase:
     Type: AWS::RDS::DBInstance
     Properties: 
@@ -18,6 +19,36 @@ Resources:
       Port: 5432
       PubliclyAccessible: True
       StorageType: gp2
+    
+  # API Gateway HTTP API
+  QuizApiGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties: 
+      CorsConfiguration: 
+        AllowCredentials: False
+        AllowHeaders: 
+          - content-type
+        AllowMethods: 
+          - GET
+          - PATCH
+          - POST
+          - DELETE
+        AllowOrigins: 
+          - '*'
+        MaxAge: 0
+      Description: HTTP API to call Instant Quiz lambda functions
+      Name: Instant Quiz
+      ProtocolType: HTTP
+
+  # GET /categories API route
+  GetCategoriesRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: 
+      ApiId: !Ref QuizApiGateway
+      AuthorizationType: NONE
+      OperationName: GET
+      RouteKey: GET /categories
+
 
   # # s3 bucket to store downloadable quizzes
   # DownloadBucket:
