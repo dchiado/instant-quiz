@@ -85,38 +85,6 @@ Resources:
       Action: "lambda:InvokeFunction"
       Principal: apigateway.amazonaws.com
 
-  # GET /questions API route
-  GetQuestionsRoute:
-    Type: AWS::ApiGatewayV2::Route
-    Properties: 
-      ApiId: !Ref QuizApiGateway
-      AuthorizationType: NONE
-      OperationName: GET
-      RouteKey: GET /questions
-      Target: !Join
-        - /
-        - - integrations
-          - !Ref GetQuestionsIntegration
-
-  # GET /questions API Gateway lambda integration
-  GetQuestionsIntegration:
-    Type: AWS::ApiGatewayV2::Integration
-    Properties: 
-      ApiId: !Ref QuizApiGateway
-      Description: Integration with getQuestions lambda
-      IntegrationMethod: POST
-      IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:216835676480:function:getQuestions/invocations'
-      PayloadFormatVersion: "2.0"
-
-  # Lambda Invoke permission for getQuestions
-  GetQuestionsLambdaInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: getQuestions
-      Action: "lambda:InvokeFunction"
-      Principal: apigateway.amazonaws.com
-
   # GET /quiz API route
   GetQuizRoute:
     Type: AWS::ApiGatewayV2::Route
@@ -146,6 +114,70 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       FunctionName: createQuiz
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+
+  # PATCH /quiz API route
+  PatchQuizRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: 
+      ApiId: !Ref QuizApiGateway
+      AuthorizationType: NONE
+      OperationName: PATCH
+      RouteKey: PATCH /quiz
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref PatchQuizIntegration
+
+  # PATCH /quiz API Gateway lambda integration
+  PatchQuizIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties: 
+      ApiId: !Ref QuizApiGateway
+      Description: Integration with replaceQuestion lambda
+      IntegrationMethod: POST
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:216835676480:function:replaceQuestion/invocations'
+      PayloadFormatVersion: "2.0"
+
+  # Lambda Invoke permission for replaceQuestion
+  PatchQuizLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: replaceQuestion
+      Action: "lambda:InvokeFunction"
+      Principal: apigateway.amazonaws.com
+
+  # POST /quiz API route
+  PostQuizRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: 
+      ApiId: !Ref QuizApiGateway
+      AuthorizationType: NONE
+      OperationName: POST
+      RouteKey: POST /quiz
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref PostQuizIntegration
+
+  # POST /quiz API Gateway lambda integration
+  PostQuizIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties: 
+      ApiId: !Ref QuizApiGateway
+      Description: Integration with getQuestions lambda
+      IntegrationMethod: POST
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:216835676480:function:getQuestions/invocations'
+      PayloadFormatVersion: "2.0"
+
+  # Lambda Invoke permission for getQuestions
+  PostQuizLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: getQuestions
       Action: "lambda:InvokeFunction"
       Principal: apigateway.amazonaws.com
 
