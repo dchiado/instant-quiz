@@ -1,0 +1,15 @@
+$primary-color: #282c34;
+$secondary-gray-color: #5E6471;
+$button-green-color: #5A7D7C;
+$primary-text-color: white;
+$label-text-color: lightgray;
+$link-color: deepskyblue;
+
+:export {
+  buttonGreenColor: $button-green-color;
+  labelTextColor: $label-text-color;
+  linkColor: $link-color;
+  primaryColor: $primary-color;
+  primaryTextColor: $primary-text-color;
+  secondaryGrayColor: $secondary-gray-color;
+}

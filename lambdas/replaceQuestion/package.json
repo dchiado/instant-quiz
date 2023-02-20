@@ -1,0 +1,6 @@
+{
+  "name": "replaceQuestionLambda",
+  "dependencies": {
+    "pg": "^8.8.0"
+  }
+}

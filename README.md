@@ -63,3 +63,30 @@ Due to npm package dependencies, lambdas should be edited in this repo and deplo
     ./deployLambda.sh getQuestions
     ```
 1. If it fails and you need to do it manually, you can zip up the lambda dir with `zip -r ../getCategories.zip *`, then find the function in AWS and do Upload From > .zip file and select the new zip file
+
+## Data Flow
+
+Here is the current flow of data through the system
+
+- User loads the webpage
+- GET request made to /categories which triggers the `getCategories` lambda and returns all categories in DB
+- User selects the desired categories and clicks "Make me a quiz"
+- POST request made to /quiz which triggers the `getQuestions` lambda which:
+  - Queries the DB for questions and answers in the chosen categories
+  - Generates a quiz object and loads it into s3
+  - Returns the quiz object
+- The quiz object is displayed on the screen
+- User clicks X on a question to replace it in the quiz
+- PATCH request made to /quiz which triggers the `replaceQuestion` lambda which:
+  - Gets the quiz object from s3
+  - Removes the question that was removed by the user
+  - Queries the DB for a new question and adds it to the quiz
+  - Reuploads the quiz to s3 and returns it back to the UI
+- User clicks "Download Quiz"
+- GET request made to /quiz which triggers the `createQuiz` lambda which:
+  - Gets the quiz object from s3
+  - Generates a pdf from that quiz json object
+  - Uploads the pdf into s3
+  - Creates a presigned URL for that object
+  - Returns the presigned URL to the UI
+- The UI redirects to the presigned URL which downloads the object

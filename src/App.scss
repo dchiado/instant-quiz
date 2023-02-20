@@ -1,13 +1,15 @@
+@import 'styles/_colors.scss';
+
 .App {
   text-align: center;
-  background-color: #282c34;
+  background-color: $primary-color;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: $primary-text-color;
 }
 
 .App-logo {
@@ -26,7 +28,7 @@
 }
 
 a:link {
-  color: deepskyblue;
+  color: $link-color;
 }
 
 .container {
@@ -36,6 +38,9 @@ a:link {
   align-items: center;
 }
 
-.download-link {
-  margin-bottom: 15px;
+.buttons-row {
+  display: flex;
+  gap: 30px;
+  justify-content: space-around;
+  align-items: center;
 }
