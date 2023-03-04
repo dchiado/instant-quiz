@@ -69,7 +69,7 @@ Due to npm package dependencies, lambdas should be edited in this repo and deplo
 Here is the current flow of data through the system
 
 - User loads the webpage
-- GET request made to /categories which triggers the `getCategories` lambda and returns all categories in DB
+- GET request made to /categories which triggers the `getAllCategories` lambda and returns all categories in DB
 - User selects the desired categories and clicks "Make me a quiz"
 - POST request made to /quiz which triggers the `getQuestions` lambda which:
   - Queries the DB for questions and answers in the chosen categories

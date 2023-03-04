@@ -3,10 +3,12 @@ const { v4: uuidv4 } = require('uuid');
 const { jsPDF } = require("jspdf");
 const fs = require('fs');
 
+const QUIZ_DOWNLOAD_BUCKET = process.env.QUIZ_DOWNLOAD_BUCKET;
+
 exports.handler = async (event) => {
   const queryParams = event["queryStringParameters"];
   const s3Path = queryParams.key;
-  const bucket = 'quiz-download';
+  const bucket = QUIZ_DOWNLOAD_BUCKET;
 
   // set up s3 client and params    
   const s3 = new AWS.S3({

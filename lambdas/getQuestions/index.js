@@ -6,7 +6,8 @@ const { v4: uuidv4 } = require('uuid');
 const DB_HOST = process.env.DB_HOST;
 const DB_USERNAME = process.env.DB_USERNAME;
 const DB_NAME = process.env.DB_NAME;
-const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_PASSWORD_PARAM = process.env.DB_PASSWORD_PARAM;
+const QUIZ_DOWNLOAD_BUCKET = process.env.QUIZ_DOWNLOAD_BUCKET;
 
 exports.handler = async (event) => {
     // get body and request info
@@ -104,7 +105,7 @@ exports.handler = async (event) => {
 
     // create params for the s3 client
     const putJsonParams = {
-        Bucket: 'quiz-download',
+        Bucket: QUIZ_DOWNLOAD_BUCKET,
         Key: jsonKey,
         Body: JSON.stringify(quiz),
         ContentType: 'application/json',
@@ -132,11 +133,12 @@ exports.handler = async (event) => {
 
 async function getDbClient() {
   try {
+    const pwd = await getSSMParam(DB_PASSWORD_PARAM);
     return new pg.Client({
       host: DB_HOST,
       database: DB_NAME,
       user: DB_USERNAME,
-      password: DB_PASSWORD,
+      password: pwd,
       port: 5432,
       ssl: true
     });
@@ -145,3 +147,17 @@ async function getDbClient() {
   }
 }
 
+async function getSSMParam(paramName) {
+  const ssm = new AWS.SSM({ region: 'us-east-2' });
+  const options = {
+    Name: paramName,
+    WithDecryption: false
+  };
+
+  const paramValue = await ssm.getParameter(options).promise()
+  .then((data) => data.Parameter.Value)
+  .catch((err) => {
+      console.error('failed to get param: ', err);
+  });
+  return paramValue;
+}

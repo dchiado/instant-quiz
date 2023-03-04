@@ -1,5 +1,25 @@
+Parameters:
+  DbHostParam:
+    Type: String
+    Description: Hostname of RDS database
+  DbNameParam:
+    Type: String
+    Description: Name of RDS database
+  DbUsernameParam:
+    Type: String
+    Description: Username for RDS database
+  DbPasswordParam:
+    Type: String
+    Description: DB password
+  UploadBucketName:
+    Type: String
+    Default: instant-quiz-upload
+
 Resources:
-  # RDS Instance
+
+  ###########
+  ### RDS ###
+  ###########
   QuizDatabase:
     Type: AWS::RDS::DBInstance
     Properties: 
@@ -12,14 +32,154 @@ Resources:
       DBName: trivia
       EnablePerformanceInsights: False
       Engine: postgres
-      ManageMasterUserPassword: True
       MasterUsername: postgres
+      MasterUserPassword: !Ref DbPasswordParam
       MaxAllocatedStorage: 20
       MultiAZ: False
       Port: 5432
       PubliclyAccessible: True
       StorageType: gp2
-    
+
+  DbPasswordSSMParam:
+    Type: AWS::SSM::Parameter
+    Properties: 
+      Description: DB Password for quiz database
+      Name: RDS_DB_PASSWORD
+      Tier: Standard
+      Type: String
+      Value: !Ref DbPasswordParam
+
+  ###############
+  ### Lambdas ###
+  ###############
+
+  # All purpose lambda execution role
+  IamRoleLambdaExecution:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      RoleName: basic-lambda-role  
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: "Allow"
+          Principal:
+            Service:
+            - "lambda.amazonaws.com"
+          Action: "sts:AssumeRole"
+      ManagedPolicyArns: 
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+      - "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+
+  # Get all categories when page first loads
+  GetAllCategoriesLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: instant-quiz-lambdas
+        S3Key: getAllCategories.zip
+      Description: Retrieve all categories ordered by name
+      Environment:
+        Variables:
+          DB_HOST: !Ref DbHostParam
+          DB_NAME: !Ref DbNameParam
+          DB_USERNAME: !Ref DbUsernameParam
+          DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
+      FunctionName: getAllCategories
+      Handler: index.handler
+      MemorySize: 256
+      PackageType: Zip
+      Role: !GetAtt "IamRoleLambdaExecution.Arn"
+      Runtime: nodejs16.x
+      Timeout: 30
+
+  # Get list of questions after user selects categories
+  GetQuestionsLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: instant-quiz-lambdas
+        S3Key: getQuestions.zip
+      Description: Retrieve questions with given categories
+      Environment:
+        Variables:
+          DB_HOST: !Ref DbHostParam
+          DB_NAME: !Ref DbNameParam
+          DB_USERNAME: !Ref DbUsernameParam
+          DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
+          QUIZ_DOWNLOAD_BUCKET: !Ref DownloadBucket
+      FunctionName: getQuestions
+      Handler: index.handler
+      MemorySize: 256
+      PackageType: Zip
+      Role: !GetAtt "IamRoleLambdaExecution.Arn"
+      Runtime: nodejs16.x
+      Timeout: 30
+
+  # Replace a question in an existing quiz
+  ReplaceQuestionLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: instant-quiz-lambdas
+        S3Key: replaceQuestion.zip
+      Description: Replace individual question in a quiz
+      Environment:
+        Variables:
+          DB_HOST: !Ref DbHostParam
+          DB_NAME: !Ref DbNameParam
+          DB_USERNAME: !Ref DbUsernameParam
+          DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
+          QUIZ_DOWNLOAD_BUCKET: !Ref DownloadBucket
+      FunctionName: replaceQuestion
+      Handler: index.handler
+      MemorySize: 256
+      PackageType: Zip
+      Role: !GetAtt "IamRoleLambdaExecution.Arn"
+      Runtime: nodejs16.x
+      Timeout: 30
+
+  # Generate final quiz in a pdf
+  CreateQuizLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: instant-quiz-lambdas
+        S3Key: createQuiz.zip
+      Description: Generate pdf file with final quiz
+      Environment:
+        Variables:
+          QUIZ_DOWNLOAD_BUCKET: !Ref DownloadBucket
+      FunctionName: createQuiz
+      Handler: index.handler
+      MemorySize: 256
+      PackageType: Zip
+      Role: !GetAtt "IamRoleLambdaExecution.Arn"
+      Runtime: nodejs16.x
+      Timeout: 30
+
+  # Replace a question in an existing quiz
+  LoadDataLambda:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Code:
+        S3Bucket: instant-quiz-lambdas
+        S3Key: loadData.zip
+      Description: Load data from an uploaded quiz
+      Environment:
+        Variables:
+          DB_HOST: !Ref DbHostParam
+          DB_NAME: !Ref DbNameParam
+          DB_USERNAME: !Ref DbUsernameParam
+          DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
+      FunctionName: loadData
+      Handler: index.handler
+      MemorySize: 256
+      PackageType: Zip
+      Role: !GetAtt "IamRoleLambdaExecution.Arn"
+      Runtime: nodejs16.x
+      Timeout: 30
+
   ###################
   ### API Gateway ###
   ###################
@@ -71,17 +231,17 @@ Resources:
     Type: AWS::ApiGatewayV2::Integration
     Properties: 
       ApiId: !Ref QuizApiGateway
-      Description: Integration with getCategories lambda
+      Description: Integration with getAllCategories lambda
       IntegrationMethod: POST
       IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:216835676480:function:getCategories/invocations'
+      IntegrationUri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetAllCategoriesLambda.Arn}/invocations'
       PayloadFormatVersion: "2.0"
 
   # Lambda Invoke permission for getCategories
   GetCategoriesLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: getCategories
+      FunctionName: !Ref GetAllCategoriesLambda
       Action: "lambda:InvokeFunction"
       Principal: apigateway.amazonaws.com
 
@@ -170,94 +330,111 @@ Resources:
       Description: Integration with getQuestions lambda
       IntegrationMethod: POST
       IntegrationType: AWS_PROXY
-      IntegrationUri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-2:216835676480:function:getQuestions/invocations'
+      IntegrationUri: !Sub 'arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetQuestionsLambda.Arn}/invocations'
       PayloadFormatVersion: "2.0"
 
   # Lambda Invoke permission for getQuestions
   PostQuizLambdaInvokePermission:
     Type: AWS::Lambda::Permission
     Properties:
-      FunctionName: getQuestions
+      FunctionName: !Ref GetQuestionsLambda
       Action: "lambda:InvokeFunction"
       Principal: apigateway.amazonaws.com
 
+  ##########
+  ### S3 ###
+  ##########
 
-  # # s3 bucket to store downloadable quizzes
-  # DownloadBucket:
-  #   Type: AWS::S3::Bucket
-  #   Properties: 
-  #     BucketEncryption: 
-  #       ServerSideEncryptionConfiguration: 
-  #       - ServerSideEncryptionByDefault:
-  #           SSEAlgorithm: AES256
-  #     BucketName: 'instant-quiz-download'
-  #     PublicAccessBlockConfiguration: 
-  #         BlockPublicAcls: True
-  #         BlockPublicPolicy: True
-  #         IgnorePublicAcls: True
-  #         RestrictPublicBuckets: True
-  #     VersioningConfiguration: 
-  #       Status: Enabled
-  #   DeletionPolicy: Delete
+  # s3 bucket to store downloadable quizzes
+  DownloadBucket:
+    Type: AWS::S3::Bucket
+    Properties: 
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      BucketName: 'instant-quiz-download'
+      PublicAccessBlockConfiguration: 
+          BlockPublicAcls: True
+          BlockPublicPolicy: True
+          IgnorePublicAcls: True
+          RestrictPublicBuckets: True
+      VersioningConfiguration: 
+        Status: Enabled
+    DeletionPolicy: Delete
 
-  # # download bucket policy
-  # DownloadBucketPolicy:
-  #   Type: AWS::S3::BucketPolicy
-  #   Properties: 
-  #     Bucket: !Ref DownloadBucket
-  #     PolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Action:
-  #             - 's3:AbortMultipartUpload'
-  #             - 's3:GetObject'
-  #             - 's3:GetObjectVersion'
-  #             - 's3:PutObject'
-  #           Effect: Allow
-  #           Resource: !Join
-  #             - ''
-  #             - - 'arn:aws:s3:::'
-  #               - !Ref DownloadBucket
-  #               - /*
-  #           # TODO needs to be dynamic
-  #           Principal: 'arn:aws:iam::216835676480:role/service-role/getQuestions-role-1g8vur7n'
+  # download bucket policy
+  DownloadBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref DownloadBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:AbortMultipartUpload'
+              - 's3:GetObject'
+              - 's3:GetObjectVersion'
+              - 's3:PutObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref DownloadBucket
+                - /*
+            Principal: 
+              AWS: 
+                - !GetAtt "IamRoleLambdaExecution.Arn"
 
   # # TODO: lifecycle rule for download bucket
 
-  # # s3 bucket for uploading questions
-  # UploadBucket:
-  #   Type: AWS::S3::Bucket
-  #   Properties: 
-  #     BucketEncryption: 
-  #       ServerSideEncryptionConfiguration: 
-  #       - ServerSideEncryptionByDefault:
-  #           SSEAlgorithm: AES256
-  #     BucketName: 'instant-quiz-upload'
-  #     PublicAccessBlockConfiguration: 
-  #         BlockPublicAcls: True
-  #         BlockPublicPolicy: True
-  #         IgnorePublicAcls: True
-  #         RestrictPublicBuckets: True
-  #     VersioningConfiguration: 
-  #       Status: Enabled
-  #   DeletionPolicy: Delete
+  # s3 bucket for uploading questions
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties: 
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+      BucketName: 'instant-quiz-upload'
+      PublicAccessBlockConfiguration: 
+          BlockPublicAcls: True
+          BlockPublicPolicy: True
+          IgnorePublicAcls: True
+          RestrictPublicBuckets: True
+      VersioningConfiguration: 
+        Status: Enabled
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt LoadDataLambda.Arn
 
-  # # upload bucket policy
-  # UploadBucketPolicy:
-  #   Type: AWS::S3::BucketPolicy
-  #   Properties: 
-  #     Bucket: !Ref UploadBucket
-  #     PolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Action:
-  #             - 's3:GetObject'
-  #           Effect: Allow
-  #           Resource: !Join
-  #             - ''
-  #             - - 'arn:aws:s3:::'
-  #               - !Ref UploadBucket
-  #               - /*
-  #           # TODO needs to be dynamic
-  #           Principal: 'arn:aws:iam::216835676480:role/service-role/loadData-role-3rqtsv62'
+  # upload bucket policy
+  UploadBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties: 
+      Bucket: !Ref UploadBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Resource: !Join
+              - ''
+              - - 'arn:aws:s3:::'
+                - !Ref UploadBucket
+                - /*
+            Principal: 
+              AWS: 
+                - !GetAtt IamRoleLambdaExecution.Arn
 
+  # s3 invoke lambda permission
+  S3InvokeLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LoadDataLambda
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub arn:aws:s3:::${UploadBucketName}

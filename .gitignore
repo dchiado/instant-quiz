@@ -25,3 +25,6 @@ yarn-error.log*
 
 # lambda zip files
 *.zip
+
+# cloudformation params
+*params.json
