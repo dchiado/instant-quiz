@@ -1,7 +1,4 @@
 Parameters:
-  DbHostParam:
-    Type: String
-    Description: Hostname of RDS database
   DbNameParam:
     Type: String
     Description: Name of RDS database
@@ -29,7 +26,7 @@ Resources:
       BackupRetentionPeriod: 0
       DBInstanceClass: db.t3.micro
       DBInstanceIdentifier: quiz-database
-      DBName: trivia
+      DBName: !Ref DbNameParam
       EnablePerformanceInsights: False
       Engine: postgres
       MasterUsername: postgres
@@ -81,7 +78,7 @@ Resources:
       Description: Retrieve all categories ordered by name
       Environment:
         Variables:
-          DB_HOST: !Ref DbHostParam
+          DB_HOST: !GetAtt QuizDatabase.Endpoint.Address
           DB_NAME: !Ref DbNameParam
           DB_USERNAME: !Ref DbUsernameParam
           DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
@@ -103,7 +100,7 @@ Resources:
       Description: Retrieve questions with given categories
       Environment:
         Variables:
-          DB_HOST: !Ref DbHostParam
+          DB_HOST: !GetAtt QuizDatabase.Endpoint.Address
           DB_NAME: !Ref DbNameParam
           DB_USERNAME: !Ref DbUsernameParam
           DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
@@ -126,7 +123,7 @@ Resources:
       Description: Replace individual question in a quiz
       Environment:
         Variables:
-          DB_HOST: !Ref DbHostParam
+          DB_HOST: !GetAtt QuizDatabase.Endpoint.Address
           DB_NAME: !Ref DbNameParam
           DB_USERNAME: !Ref DbUsernameParam
           DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
@@ -168,7 +165,7 @@ Resources:
       Description: Load data from an uploaded quiz
       Environment:
         Variables:
-          DB_HOST: !Ref DbHostParam
+          DB_HOST: !GetAtt QuizDatabase.Endpoint.Address
           DB_NAME: !Ref DbNameParam
           DB_USERNAME: !Ref DbUsernameParam
           DB_PASSWORD_PARAM: !Ref DbPasswordSSMParam
